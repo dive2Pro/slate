@@ -239,7 +239,7 @@ const initialValue: SlateElement[] = [
   {
     type: 'paragraph',
     children: [
-      { text: 'Try [[mentioning]] characters, like ' },
+      { text: 'Try [[]] characters, like ' },
       {
         type: 'mention',
         character: 'R2-D2',

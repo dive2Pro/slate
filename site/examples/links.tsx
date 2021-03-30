@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react'
 import isUrl from 'is-url'
 import { Slate, Editable, withReact, useSlate } from 'slate-react'
+import { jsx } from 'slate-hyperscript'
 import {
   Node,
   Transforms,
@@ -12,7 +13,7 @@ import {
   Descendant,
 } from 'slate'
 import { withHistory } from 'slate-history'
-import { LinkElement, PageRefElement } from './custom-types'
+import { LinkElement, PageRefElement, PageTempRefElement } from './custom-types'
 
 import { Button, Icon, Toolbar } from '../components'
 import { css } from 'emotion'
@@ -28,10 +29,16 @@ const LinkExample = () => {
     <Slate
       editor={editor}
       value={value}
-      onChange={
-        (value) => setValue(value)
-        // 自动补全？ 不要自动补全
-      }
+      onChange={(value) => {
+        setValue(value)
+        const { selection } = editor
+        if (selection && Range.isCollapsed(selection)) {
+          if (isRefActive(editor)) {
+            console.log(value)
+            console.log('ahahaha')
+          }
+        }
+      }}
     >
       <Toolbar>
         <LinkButton />
@@ -48,19 +55,28 @@ const withLinks = (editor: Editor) => {
   const { insertData, insertText, isInline, selection } = editor
 
   editor.isInline = (element) => {
-    return ['link', 'page-ref'].some((type) => element.type === type)
+    return ['link', 'page-ref', 'page-temp-ref'].some(
+      (type) => element.type === type
+    )
       ? true
       : isInline(element)
   }
 
   editor.insertText = (text) => {
-    console.log(text, ' = insertText')
     if (text && isUrl(text)) {
-      wrapLink(editor, text)
+      return wrapLink(editor, text)
     } else if (text === '[') {
-      // 1. 获知当前是否是在
-      wrapRef(editor, text)
+      // 1. 获知当前是否是在[中连续插入 [] ]
+      // 先不考虑连续插入的情况, 只考虑是正确输入了两个 [[
+
+      if (isTempRefActive(editor)) {
+        wrapRef(editor, '')
+      } else {
+        wrapTempRef(editor, '')
+      }
     } else {
+      const isCollapsed = selection && Range.isCollapsed(selection)
+      console.log(isCollapsed)
       insertText(text)
     }
   }
@@ -107,6 +123,16 @@ const isRefActive = (editor: Editor) => {
   return !!ref
 }
 
+const isTempRefActive = (editor: Editor) => {
+  const [ref] = Editor.nodes(editor, {
+    match: (n) =>
+      !Editor.isEditor(n) &&
+      SlateElement.isElement(n) &&
+      n.type === 'page-temp-ref',
+  })
+  return !!ref
+}
+
 const unwrapRef = (editor: Editor) => {
   console.log('unwrap ref')
   Transforms.unwrapNodes(editor, {
@@ -115,13 +141,27 @@ const unwrapRef = (editor: Editor) => {
   })
 }
 
-const wrapRef = (editor: Editor, text) => {
-  if (isRefActive(editor)) {
+const unwrapTempRef = (editor: Editor) => {
+  console.log('unwrap ref')
+  Transforms.unwrapNodes(editor, {
+    match: (n) =>
+      !Editor.isEditor(n) &&
+      SlateElement.isElement(n) &&
+      n.type === 'page-temp-ref',
+  })
+}
+const wrapTempRef = (editor: Editor, text: string) => {
+  if (isTempRefActive(editor)) {
     unwrapRef(editor)
   }
+  const pageRef: PageTempRefElement = {
+    type: 'page-temp-ref',
+    title: text,
+    children: [{ text: '[]' }],
+  }
 
-  const { insertText } = editor
-  insertText('[]')
+  Transforms.insertNodes(editor, pageRef)
+
   Transforms.setSelection(editor, {
     ...editor.selection,
     anchor: {
@@ -133,14 +173,39 @@ const wrapRef = (editor: Editor, text) => {
       offset: editor.selection.focus.offset - 1,
     },
   })
+}
+const wrapRef = (editor: Editor, text: string) => {
+  if (isRefActive(editor)) {
+    unwrapRef(editor)
+  }
 
+  Transforms.removeNodes(editor, {
+    match: (n) =>
+      !Editor.isEditor(n) &&
+      SlateElement.isElement(n) &&
+      n.type === 'page-temp-ref',
+    mode: 'lowest',
+  })
+  console.log(parent, ' =response')
   const pageRef: PageRefElement = {
     type: 'page-ref',
-    title: '',
-    children: [{ text: '' }],
+    title: text,
+    children: [{ text: '[[]]' }],
   }
 
   Transforms.insertNodes(editor, pageRef)
+
+  Transforms.setSelection(editor, {
+    ...editor.selection,
+    anchor: {
+      ...editor.selection.anchor,
+      offset: editor.selection.anchor.offset - 2,
+    },
+    focus: {
+      ...editor.selection.focus,
+      offset: editor.selection.focus.offset - 2,
+    },
+  })
 }
 
 const wrapLink = (editor, url) => {
@@ -164,17 +229,63 @@ const wrapLink = (editor, url) => {
   }
 }
 
+const deserialize = (el) => {
+  if (el.nodeType === 3) {
+    return el.textContent
+  } else if (el.nodeType !== 1) {
+    return null
+  }
+
+  const children = Array.from(el.childNodes).map(deserialize)
+
+  if (children.length === 0) {
+    children = [{ text: '' }]
+  }
+
+  switch (el.nodeName) {
+    case 'BODY':
+      return jsx('fragment', {}, children)
+    case 'BR':
+      return '\n'
+    case 'BLOCKQUOTE':
+      return jsx('element', { type: 'quote' }, children)
+    case 'P':
+      return jsx('element', { type: 'paragraph' }, children)
+    case 'A':
+      return jsx(
+        'element',
+        { type: 'link', url: el.getAttribute('href') },
+        children
+      )
+    default:
+      return el.textContent
+  }
+}
+
 function PageRef(props) {
   const { attributes, children, element } = props
   useEffect(() => {
-    console.log(children, element)
+    console.log(' -----@@', element.children.text)
+    // if (children) console.log(Node.string(children), ' = children')
   }, [children])
-  return <span {...attributes}>{children}</span>
+  return (
+    <a
+      {...attributes}
+      href="www.baidu.com"
+      className={css`
+        color: #106ba3;
+      `}
+    >
+      {children}
+    </a>
+  )
 }
 
 const Element = (props) => {
   const { attributes, children, element } = props
   switch (element.type) {
+    case 'page-temp-ref':
+      return <span {...attributes}>{children}</span>
     case 'page-ref':
       return <PageRef {...props} />
     case 'link':
@@ -224,6 +335,16 @@ const initialValue: SlateElement[] = [
       {
         text: 'In addition to block nodes, you can create inline nodes, like ',
       },
+      {
+        type: 'page-ref',
+        title: 'game over',
+        children: [
+          {
+            text: '[[!!somebody]]',
+          },
+        ],
+      },
+      { text: '-----' },
       {
         type: 'link',
         url: 'https://en.wikipedia.org/wiki/Hypertext',

@@ -65,6 +65,12 @@ export type TitleElement = { type: 'title'; children: Descendant[] }
 
 export type VideoElement = { type: 'video'; url: string; children: EmptyText[] }
 
+export type PageTempRefElement = {
+  type: 'page-temp-ref'
+  title: string
+  children: Descendant[]
+}
+
 export type PageRefElement = {
   type: 'page-ref'
   title: string
@@ -90,6 +96,7 @@ type CustomElement =
   | VideoElement
   | CheckListElement
   | PageRefElement
+  | PageTempRefElement
 
 export type CustomText = {
   bold?: boolean
