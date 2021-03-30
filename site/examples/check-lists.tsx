@@ -136,7 +136,7 @@ const Element = (props) => {
   }
 }
 
-export const CheckListItemElement = ({ attributes, children, element }) => {
+const CheckListItemElement = ({ attributes, children, element }) => {
   const editor = useSlateStatic()
   const readOnly = useReadOnly()
   const { checked } = element

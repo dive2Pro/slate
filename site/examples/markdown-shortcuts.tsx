@@ -12,11 +12,7 @@ import {
   Descendant,
 } from 'slate'
 import { withHistory } from 'slate-history'
-import {
-  BulletedListElement,
-  CheckListElement,
-  CheckListItemElement,
-} from './custom-types'
+import { BulletedListElement, CheckListElement } from './custom-types'
 import { css } from 'emotion'
 
 const SHORTCUTS = {
@@ -71,7 +67,9 @@ const withShortcuts = (editor) => {
 
       if (type) {
         Transforms.select(editor, range)
-        Transforms.delete(editor)
+        setTimeout(() => {
+          Transforms.delete(editor)
+        })
         const newProperties: Partial<SlateElement> = {
           type,
           checked: true,

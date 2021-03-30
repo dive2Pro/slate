@@ -82,6 +82,7 @@ type CustomElement =
   | TableCellElement
   | TitleElement
   | VideoElement
+  | CheckListElement
 
 export type CustomText = {
   bold?: boolean
