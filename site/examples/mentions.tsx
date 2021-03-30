@@ -1,3 +1,4 @@
+// @refresh reset
 import React, { useMemo, useCallback, useRef, useEffect, useState } from 'react'
 import {
   Node,
@@ -27,19 +28,20 @@ const MentionExample = () => {
   const [target, setTarget] = useState<Range | undefined>()
   const [index, setIndex] = useState(0)
   const [search, setSearch] = useState('')
-  const renderElement = useCallback(props => <Element {...props} />, [])
+  const renderElement = useCallback((props) => <Element {...props} />, [])
   const editor = useMemo(
     () => withMentions(withReact(withHistory(createEditor()))),
     []
   )
 
-  const chars = CHARACTERS.filter(c =>
+  const chars = CHARACTERS.filter((c) =>
     c.toLowerCase().startsWith(search.toLowerCase())
   ).slice(0, 10)
 
   const onKeyDown = useCallback(
-    event => {
+    (event) => {
       if (target) {
+        // 如果有target就表示正要选择 mentions
         switch (event.key) {
           case 'ArrowDown':
             event.preventDefault()
@@ -82,27 +84,45 @@ const MentionExample = () => {
     <Slate
       editor={editor}
       value={value}
-      onChange={value => {
+      onChange={(value) => {
         setValue(value)
         const { selection } = editor
-
         if (selection && Range.isCollapsed(selection)) {
-          const [start] = Range.edges(selection)
-          const wordBefore = Editor.before(editor, start, { unit: 'word' })
-          const before = wordBefore && Editor.before(editor, wordBefore)
-          const beforeRange = before && Editor.range(editor, before, start)
-          const beforeText = beforeRange && Editor.string(editor, beforeRange)
-          const beforeMatch = beforeText && beforeText.match(/^@(\w+)$/)
-          const after = Editor.after(editor, start)
-          const afterRange = Editor.range(editor, start, after)
-          const afterText = Editor.string(editor, afterRange)
-          const afterMatch = afterText.match(/^(\s|$)/)
+          const [start] = Range.edges(selection) // 当前选择的边界
+          const wordBefore = Editor.before(editor, start, { unit: 'word' }) //之前一个连续的 word ，中间没有空格
 
-          if (beforeMatch && afterMatch) {
-            setTarget(beforeRange)
-            setSearch(beforeMatch[1])
-            setIndex(0)
-            return
+          const before = wordBefore && Editor.before(editor, wordBefore) // word的之前的位置
+          const beforeRange = before && Editor.range(editor, before, start) // word 的range
+          const beforeText = beforeRange && Editor.string(editor, beforeRange) // 取到 word 的字符
+          {
+            const beforeMatch = beforeText && beforeText.match(/^@(\w+)$/) // 检查是否匹配以 @ 开头
+            // --- 检查后面是否紧接着一个 空格
+            const after = Editor.after(editor, start)
+            const afterRange = Editor.range(editor, start, after)
+            const afterText = Editor.string(editor, afterRange)
+            const afterMatch = afterText.match(/^(\s|$)/)
+
+            if (beforeMatch && afterMatch) {
+              setTarget(beforeRange)
+              setSearch(beforeMatch[1])
+              setIndex(0)
+              return
+            }
+          }
+          {
+            const beforeMatch = beforeText && beforeText.match(/^(\[\[)(\w+)$/) // 检查是否匹配以 [[ 开头
+            // --- 检查后面是否紧接着一个 空格
+            const after = Editor.after(editor, start)
+            const afterRange = Editor.range(editor, start, after)
+            const afterText = Editor.string(editor, afterRange)
+            const afterMatch = afterText.match(/^(\s|$)/)
+
+            if (beforeMatch && afterMatch) {
+              setTarget(beforeRange)
+              setSearch(beforeMatch[1])
+              setIndex(0)
+              return
+            }
           }
         }
 
@@ -148,14 +168,14 @@ const MentionExample = () => {
   )
 }
 
-const withMentions = editor => {
+const withMentions = (editor) => {
   const { isInline, isVoid } = editor
 
-  editor.isInline = element => {
+  editor.isInline = (element) => {
     return element.type === 'mention' ? true : isInline(element)
   }
 
-  editor.isVoid = element => {
+  editor.isVoid = (element) => {
     return element.type === 'mention' ? true : isVoid(element)
   }
 
@@ -172,7 +192,7 @@ const insertMention = (editor, character) => {
   Transforms.move(editor)
 }
 
-const Element = props => {
+const Element = (props) => {
   const { attributes, children, element } = props
   switch (element.type) {
     case 'mention':
@@ -219,7 +239,7 @@ const initialValue: SlateElement[] = [
   {
     type: 'paragraph',
     children: [
-      { text: 'Try mentioning characters, like ' },
+      { text: 'Try [[mentioning]] characters, like ' },
       {
         type: 'mention',
         character: 'R2-D2',

@@ -65,6 +65,12 @@ export type TitleElement = { type: 'title'; children: Descendant[] }
 
 export type VideoElement = { type: 'video'; url: string; children: EmptyText[] }
 
+export type PageRefElement = {
+  type: 'page-ref'
+  title: string
+  children: Descendant[]
+}
+
 type CustomElement =
   | BlockQuoteElement
   | BulletedListElement
@@ -83,6 +89,7 @@ type CustomElement =
   | TitleElement
   | VideoElement
   | CheckListElement
+  | PageRefElement
 
 export type CustomText = {
   bold?: boolean

@@ -27,6 +27,7 @@ const SHORTCUTS = {
   '#####': 'heading-five',
   '######': 'heading-six',
   '[ ]': 'check-box-item',
+  '[[': 'link-ref',
 }
 
 const MarkdownShortcutsExample = () => {

@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from 'react'
+// @refresh reset
+import React, { useState, useMemo, useEffect } from 'react'
 import isUrl from 'is-url'
 import { Slate, Editable, withReact, useSlate } from 'slate-react'
 import {
@@ -11,9 +12,10 @@ import {
   Descendant,
 } from 'slate'
 import { withHistory } from 'slate-history'
-import { LinkElement } from './custom-types'
+import { LinkElement, PageRefElement } from './custom-types'
 
 import { Button, Icon, Toolbar } from '../components'
+import { css } from 'emotion'
 
 const LinkExample = () => {
   const [value, setValue] = useState<Descendant[]>(initialValue)
@@ -23,34 +25,47 @@ const LinkExample = () => {
   )
 
   return (
-    <Slate editor={editor} value={value} onChange={value => setValue(value)}>
+    <Slate
+      editor={editor}
+      value={value}
+      onChange={
+        (value) => setValue(value)
+        // 自动补全？ 不要自动补全
+      }
+    >
       <Toolbar>
         <LinkButton />
       </Toolbar>
       <Editable
-        renderElement={props => <Element {...props} />}
+        renderElement={(props) => <Element {...props} />}
         placeholder="Enter some text..."
       />
     </Slate>
   )
 }
 
-const withLinks = editor => {
-  const { insertData, insertText, isInline } = editor
+const withLinks = (editor: Editor) => {
+  const { insertData, insertText, isInline, selection } = editor
 
-  editor.isInline = element => {
-    return element.type === 'link' ? true : isInline(element)
+  editor.isInline = (element) => {
+    return ['link', 'page-ref'].some((type) => element.type === type)
+      ? true
+      : isInline(element)
   }
 
-  editor.insertText = text => {
+  editor.insertText = (text) => {
+    console.log(text, ' = insertText')
     if (text && isUrl(text)) {
       wrapLink(editor, text)
+    } else if (text === '[') {
+      // 1. 获知当前是否是在
+      wrapRef(editor, text)
     } else {
       insertText(text)
     }
   }
 
-  editor.insertData = data => {
+  editor.insertData = (data) => {
     const text = data.getData('text/plain')
 
     if (text && isUrl(text)) {
@@ -69,19 +84,63 @@ const insertLink = (editor, url) => {
   }
 }
 
-const isLinkActive = editor => {
+const isLinkActive = (editor) => {
   const [link] = Editor.nodes(editor, {
-    match: n =>
+    match: (n) =>
       !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === 'link',
   })
   return !!link
 }
 
-const unwrapLink = editor => {
+const unwrapLink = (editor) => {
   Transforms.unwrapNodes(editor, {
-    match: n =>
+    match: (n) =>
       !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === 'link',
   })
+}
+
+const isRefActive = (editor: Editor) => {
+  const [ref] = Editor.nodes(editor, {
+    match: (n) =>
+      !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === 'page-ref',
+  })
+  return !!ref
+}
+
+const unwrapRef = (editor: Editor) => {
+  console.log('unwrap ref')
+  Transforms.unwrapNodes(editor, {
+    match: (n) =>
+      !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === 'page-ref',
+  })
+}
+
+const wrapRef = (editor: Editor, text) => {
+  if (isRefActive(editor)) {
+    unwrapRef(editor)
+  }
+
+  const { insertText } = editor
+  insertText('[]')
+  Transforms.setSelection(editor, {
+    ...editor.selection,
+    anchor: {
+      ...editor.selection.anchor,
+      offset: editor.selection.anchor.offset - 1,
+    },
+    focus: {
+      ...editor.selection.focus,
+      offset: editor.selection.focus.offset - 1,
+    },
+  })
+
+  const pageRef: PageRefElement = {
+    type: 'page-ref',
+    title: '',
+    children: [{ text: '' }],
+  }
+
+  Transforms.insertNodes(editor, pageRef)
 }
 
 const wrapLink = (editor, url) => {
@@ -105,11 +164,34 @@ const wrapLink = (editor, url) => {
   }
 }
 
-const Element = ({ attributes, children, element }) => {
+function PageRef(props) {
+  const { attributes, children, element } = props
+  useEffect(() => {
+    console.log(children, element)
+  }, [children])
+  return <span {...attributes}>{children}</span>
+}
+
+const Element = (props) => {
+  const { attributes, children, element } = props
   switch (element.type) {
+    case 'page-ref':
+      return <PageRef {...props} />
     case 'link':
       return (
-        <a {...attributes} href={element.url}>
+        <a
+          {...attributes}
+          href={element.url}
+          className={css`
+            &::before {
+              content: '[';
+            }
+
+            &::after {
+              content: ']';
+            }
+          `}
+        >
           {children}
         </a>
       )
@@ -123,7 +205,7 @@ const LinkButton = () => {
   return (
     <Button
       active={isLinkActive(editor)}
-      onMouseDown={event => {
+      onMouseDown={(event) => {
         event.preventDefault()
         const url = window.prompt('Enter the URL of the link:')
         if (!url) return

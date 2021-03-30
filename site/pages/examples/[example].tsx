@@ -254,7 +254,6 @@ const Warning = (props) => (
 
 const ExamplePage = (props: { example: string }) => {
   const { example } = props
-  console.log(props, ' = props')
   const [error, setError] = useState<Error | undefined>()
   const [stacktrace, setStacktrace] = useState<string | undefined>()
   const [showTabs, setShowTabs] = useState<boolean>()
