@@ -17,8 +17,13 @@ export type BulletedListElement = {
   children: Descendant[]
 }
 
+export type CheckListElement = {
+  type: 'check-list'
+  children: Descendant[]
+}
+
 export type CheckListItemElement = {
-  type: 'check-list-item'
+  type: 'check-box-item'
   checked: boolean
   children: Descendant[]
 }

@@ -30,26 +30,26 @@ const ImagesExample = () => {
   )
 
   return (
-    <Slate editor={editor} value={value} onChange={value => setValue(value)}>
+    <Slate editor={editor} value={value} onChange={(value) => setValue(value)}>
       <Toolbar>
         <InsertImageButton />
       </Toolbar>
       <Editable
-        renderElement={props => <Element {...props} />}
+        renderElement={(props) => <Element {...props} />}
         placeholder="Enter some text..."
       />
     </Slate>
   )
 }
 
-const withImages = editor => {
+const withImages = (editor) => {
   const { insertData, isVoid } = editor
 
-  editor.isVoid = element => {
+  editor.isVoid = (element) => {
     return element.type === 'image' ? true : isVoid(element)
   }
 
-  editor.insertData = data => {
+  editor.insertData = (data) => {
     const text = data.getData('text/plain')
     const { files } = data
 
@@ -83,7 +83,7 @@ const insertImage = (editor, url) => {
   Transforms.insertNodes(editor, image)
 }
 
-const Element = props => {
+const Element = (props) => {
   const { attributes, children, element } = props
 
   switch (element.type) {
@@ -119,7 +119,7 @@ const InsertImageButton = () => {
   const editor = useSlateStatic()
   return (
     <Button
-      onMouseDown={event => {
+      onMouseDown={(event) => {
         event.preventDefault()
         const url = window.prompt('Enter the URL of the image:')
         if (!url) return
@@ -131,7 +131,7 @@ const InsertImageButton = () => {
   )
 }
 
-const isImageUrl = url => {
+const isImageUrl = (url) => {
   if (!url) return false
   if (!isUrl(url)) return false
   const ext = new URL(url).pathname.split('.').pop()

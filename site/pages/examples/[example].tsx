@@ -7,6 +7,7 @@ import ErrorBoundary from 'react-error-boundary'
 
 import { Icon } from '../../components'
 
+import Impl from '../../examples/impl'
 import CheckLists from '../../examples/check-lists'
 import EditableVoids from '../../examples/editable-voids'
 import Embeds from '../../examples/embeds'
@@ -31,6 +32,7 @@ import IFrames from '../../examples/iframe'
 import { getAllExamples } from '../api'
 
 const EXAMPLES = [
+  ['Impl', Impl, 'impl'],
   ['Checklists', CheckLists, 'check-lists'],
   ['Editable Voids', EditableVoids, 'editable-voids'],
   ['Embeds', Embeds, 'embeds'],
@@ -52,7 +54,7 @@ const EXAMPLES = [
   ['Rendering in iframes', IFrames, 'iframe'],
 ]
 
-const Header = props => (
+const Header = (props) => (
   <div
     {...props}
     className={css`
@@ -67,7 +69,7 @@ const Header = props => (
   />
 )
 
-const Title = props => (
+const Title = (props) => (
   <span
     {...props}
     className={css`
@@ -76,7 +78,7 @@ const Title = props => (
   />
 )
 
-const LinkList = props => (
+const LinkList = (props) => (
   <div
     {...props}
     className={css`
@@ -86,7 +88,7 @@ const LinkList = props => (
   />
 )
 
-const A = props => (
+const A = (props) => (
   <a
     {...props}
     className={css`
@@ -135,7 +137,7 @@ const TabListUnderlay = ({ isVisible, ...props }) => (
   />
 )
 
-const TabButton = props => (
+const TabButton = (props) => (
   <span
     {...props}
     className={css`
@@ -201,7 +203,7 @@ const Wrapper = ({ className, ...props }) => (
   />
 )
 
-const ExampleHeader = props => (
+const ExampleHeader = (props) => (
   <div
     {...props}
     className={css`
@@ -216,7 +218,7 @@ const ExampleHeader = props => (
   />
 )
 
-const ExampleTitle = props => (
+const ExampleTitle = (props) => (
   <span
     {...props}
     className={css`
@@ -225,7 +227,7 @@ const ExampleTitle = props => (
   />
 )
 
-const ExampleContent = props => (
+const ExampleContent = (props) => (
   <Wrapper
     {...props}
     className={css`
@@ -234,7 +236,7 @@ const ExampleContent = props => (
   />
 )
 
-const Warning = props => (
+const Warning = (props) => (
   <Wrapper
     {...props}
     className={css`
@@ -250,11 +252,13 @@ const Warning = props => (
   />
 )
 
-const ExamplePage = ({ example }: { example: string }) => {
+const ExamplePage = (props: { example: string }) => {
+  const { example } = props
+  console.log(props, ' = props')
   const [error, setError] = useState<Error | undefined>()
   const [stacktrace, setStacktrace] = useState<string | undefined>()
   const [showTabs, setShowTabs] = useState<boolean>()
-  const EXAMPLE = EXAMPLES.find(e => e[2] === example)
+  const EXAMPLE = EXAMPLES.find((e) => e[2] === example)
   const [name, Component, path] = EXAMPLE
   return (
     <ErrorBoundary
@@ -287,7 +291,7 @@ const ExamplePage = ({ example }: { example: string }) => {
         </Header>
         <ExampleHeader>
           <TabButton
-            onClick={e => {
+            onClick={(e) => {
               e.stopPropagation()
               setShowTabs(!showTabs)
             }}
@@ -350,7 +354,7 @@ export async function getStaticPaths() {
   const paths = getAllExamples()
 
   return {
-    paths: paths.map(path => ({
+    paths: paths.map((path) => ({
       params: {
         example: path,
       },

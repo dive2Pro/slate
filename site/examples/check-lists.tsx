@@ -68,14 +68,14 @@ const initialValue: SlateElement[] = [
 
 const CheckListsExample = () => {
   const [value, setValue] = useState<Descendant[]>(initialValue)
-  const renderElement = useCallback(props => <Element {...props} />, [])
+  const renderElement = useCallback((props) => <Element {...props} />, [])
   const editor = useMemo(
     () => withChecklists(withHistory(withReact(createEditor()))),
     []
   )
 
   return (
-    <Slate editor={editor} value={value} onChange={value => setValue(value)}>
+    <Slate editor={editor} value={value} onChange={(value) => setValue(value)}>
       <Editable
         renderElement={renderElement}
         placeholder="Get to work…"
@@ -86,7 +86,7 @@ const CheckListsExample = () => {
   )
 }
 
-const withChecklists = editor => {
+const withChecklists = (editor) => {
   const { deleteBackward } = editor
 
   editor.deleteBackward = (...args) => {
@@ -94,7 +94,7 @@ const withChecklists = editor => {
 
     if (selection && Range.isCollapsed(selection)) {
       const [match] = Editor.nodes(editor, {
-        match: n =>
+        match: (n) =>
           !Editor.isEditor(n) &&
           SlateElement.isElement(n) &&
           n.type === 'check-list-item',
@@ -109,7 +109,7 @@ const withChecklists = editor => {
             type: 'paragraph',
           }
           Transforms.setNodes(editor, newProperties, {
-            match: n =>
+            match: (n) =>
               !Editor.isEditor(n) &&
               SlateElement.isElement(n) &&
               n.type === 'check-list-item',
@@ -125,7 +125,7 @@ const withChecklists = editor => {
   return editor
 }
 
-const Element = props => {
+const Element = (props) => {
   const { attributes, children, element } = props
 
   switch (element.type) {
@@ -136,7 +136,7 @@ const Element = props => {
   }
 }
 
-const CheckListItemElement = ({ attributes, children, element }) => {
+export const CheckListItemElement = ({ attributes, children, element }) => {
   const editor = useSlateStatic()
   const readOnly = useReadOnly()
   const { checked } = element
@@ -162,7 +162,7 @@ const CheckListItemElement = ({ attributes, children, element }) => {
         <input
           type="checkbox"
           checked={checked}
-          onChange={event => {
+          onChange={(event) => {
             const path = ReactEditor.findPath(editor, element)
             const newProperties: Partial<SlateElement> = {
               checked: event.target.checked,
