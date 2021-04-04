@@ -33,6 +33,10 @@ export type EditableVoidElement = {
   children: EmptyText[]
 }
 
+export type EditableInlineElement = {
+  type: 'editable-inline'
+  children: EmptyText[]
+}
 export type HeadingElement = { type: 'heading'; children: Descendant[] }
 
 export type HeadingTwoElement = { type: 'heading-two'; children: Descendant[] }
@@ -82,6 +86,7 @@ type CustomElement =
   | BulletedListElement
   | CheckListItemElement
   | EditableVoidElement
+  | EditableInlineElement
   | HeadingElement
   | HeadingTwoElement
   | ImageElement

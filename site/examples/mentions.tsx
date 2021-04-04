@@ -256,7 +256,7 @@ const initialValue: SlateElement[] = [
   },
 ]
 
-const CHARACTERS = [
+export const CHARACTERS = [
   'Aayla Secura',
   'Adi Gallia',
   'Admiral Dodd Rancit',

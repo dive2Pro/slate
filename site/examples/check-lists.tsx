@@ -99,7 +99,6 @@ const withChecklists = (editor) => {
           SlateElement.isElement(n) &&
           n.type === 'check-list-item',
       })
-
       if (match) {
         const [, path] = match
         const start = Editor.start(editor, path)

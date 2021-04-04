@@ -1,3 +1,4 @@
+// @refresh reset
 import React, { useCallback, useMemo, useState } from 'react'
 import isHotkey from 'is-hotkey'
 import { Editable, withReact, useSlate, Slate } from 'slate-react'
@@ -17,24 +18,24 @@ const HOTKEYS = {
   'mod+b': 'bold',
   'mod+i': 'italic',
   'mod+u': 'underline',
-  'mod+`': 'code',
+  'mod+`': 'ref',
 }
 
 const LIST_TYPES = ['numbered-list', 'bulleted-list']
 
 const RichTextExample = () => {
   const [value, setValue] = useState<Descendant[]>(initialValue)
-  const renderElement = useCallback(props => <Element {...props} />, [])
-  const renderLeaf = useCallback(props => <Leaf {...props} />, [])
+  const renderElement = useCallback((props) => <Element {...props} />, [])
+  const renderLeaf = useCallback((props) => <Leaf {...props} />, [])
   const editor = useMemo(() => withHistory(withReact(createEditor())), [])
 
   return (
-    <Slate editor={editor} value={value} onChange={value => setValue(value)}>
+    <Slate editor={editor} value={value} onChange={(value) => setValue(value)}>
       <Toolbar>
         <MarkButton format="bold" icon="format_bold" />
         <MarkButton format="italic" icon="format_italic" />
         <MarkButton format="underline" icon="format_underlined" />
-        <MarkButton format="code" icon="code" />
+        <MarkButton format="ref" icon="code" />
         <BlockButton format="heading-one" icon="looks_one" />
         <BlockButton format="heading-two" icon="looks_two" />
         <BlockButton format="block-quote" icon="format_quote" />
@@ -47,7 +48,7 @@ const RichTextExample = () => {
         placeholder="Enter some rich text…"
         spellCheck
         autoFocus
-        onKeyDown={event => {
+        onKeyDown={(event) => {
           for (const hotkey in HOTKEYS) {
             if (isHotkey(hotkey, event as any)) {
               event.preventDefault()
@@ -66,7 +67,7 @@ const toggleBlock = (editor, format) => {
   const isList = LIST_TYPES.includes(format)
 
   Transforms.unwrapNodes(editor, {
-    match: n =>
+    match: (n) =>
       LIST_TYPES.includes(
         !Editor.isEditor(n) && SlateElement.isElement(n) && n.type
       ),
@@ -95,7 +96,7 @@ const toggleMark = (editor, format) => {
 
 const isBlockActive = (editor, format) => {
   const [match] = Editor.nodes(editor, {
-    match: n =>
+    match: (n) =>
       !Editor.isEditor(n) && SlateElement.isElement(n) && n.type === format,
   })
 
@@ -143,7 +144,15 @@ const Leaf = ({ attributes, children, leaf }) => {
     children = <u>{children}</u>
   }
 
+  if (leaf.ref) {
+    children = <PageRef>{children}</PageRef>
+  }
+
   return <span {...attributes}>{children}</span>
+}
+
+const PageRef = (props) => {
+  return <span style={{ background: 'red' }}>{props.children}</span>
 }
 
 const BlockButton = ({ format, icon }) => {
@@ -151,7 +160,7 @@ const BlockButton = ({ format, icon }) => {
   return (
     <Button
       active={isBlockActive(editor, format)}
-      onMouseDown={event => {
+      onMouseDown={(event) => {
         event.preventDefault()
         toggleBlock(editor, format)
       }}
@@ -166,7 +175,7 @@ const MarkButton = ({ format, icon }) => {
   return (
     <Button
       active={isMarkActive(editor, format)}
-      onMouseDown={event => {
+      onMouseDown={(event) => {
         event.preventDefault()
         toggleMark(editor, format)
       }}
@@ -192,6 +201,7 @@ const initialValue: SlateElement[] = [
   {
     type: 'paragraph',
     children: [
+      { text: '<textarea>', ref: true },
       {
         text:
           "Since it's rich text, you can do things like turn a selection of text ",

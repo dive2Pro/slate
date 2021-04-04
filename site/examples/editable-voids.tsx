@@ -1,3 +1,4 @@
+// @refresh reset
 import React, { useState, useMemo } from 'react'
 import {
   Transforms,
@@ -12,7 +13,7 @@ import { css } from 'emotion'
 
 import RichTextEditor from './richtext'
 import { Button, Icon, Toolbar } from '../components'
-import { EditableVoidElement } from './custom-types'
+import { EditableInlineElement, EditableVoidElement } from './custom-types'
 
 const EditableVoidsExample = () => {
   const [value, setValue] = useState<Descendant[]>(initialValue)
@@ -28,38 +29,45 @@ const EditableVoidsExample = () => {
       </Toolbar>
 
       <Editable
-        renderElement={props => <Element {...props} />}
+        renderElement={(props) => <Element {...props} />}
         placeholder="Enter some text..."
       />
     </Slate>
   )
 }
 
-const withEditableVoids = editor => {
-  const { isVoid } = editor
+const withEditableVoids = (editor) => {
+  const { isVoid, isInline } = editor
 
-  editor.isVoid = element => {
+  editor.isVoid = (element) => {
     return element.type === 'editable-void' ? true : isVoid(element)
+  }
+
+  editor.isInline = (element) => {
+    return element.type === 'editable-inline' ? true : isInline(element)
   }
 
   return editor
 }
 
-const insertEditableVoid = editor => {
+const insertEditableVoid = (editor) => {
   const text = { text: '' }
-  const voidNode: EditableVoidElement = {
-    type: 'editable-void',
+  const voidNode: EditableInlineElement = {
+    type: 'editable-inline',
     children: [text],
   }
   Transforms.insertNodes(editor, voidNode)
 }
 
-const Element = props => {
+const Element = (props) => {
   const { attributes, children, element } = props
 
+  console.log(element.type, ' --')
   switch (element.type) {
     case 'editable-void':
       return <EditableVoid {...props} />
+    case 'editable-inline':
+      return <EditableInline {...props} />
     default:
       return <p {...attributes}>{children}</p>
   }
@@ -69,6 +77,50 @@ const unsetWidthStyle = css`
   width: unset;
 `
 
+const EditableInline = ({ attributes, children, element }) => {
+  const [inputValue, setInputValue] = useState('')
+  console.log('----')
+  return (
+    // Need contentEditable=false or Firefox has issues with certain input types.
+    <div {...attributes} contentEditable={false}>
+      <div
+        className={css`
+          box-shadow: 0 0 0 3px #ddd;
+          padding: 8px;
+        `}
+      >
+        <h4>Name:</h4>
+        <input
+          className={css`
+            margin: 8px 0;
+          `}
+          type="text"
+          value={inputValue}
+          onChange={(e) => {
+            setInputValue(e.target.value)
+          }}
+        />
+        <h4>Left or right handed:</h4>
+        <input
+          className={unsetWidthStyle}
+          type="radio"
+          name="handedness"
+          value="left"
+        />{' '}
+        Left
+        <br />
+        <input
+          className={unsetWidthStyle}
+          type="radio"
+          name="handedness"
+          value="right"
+        />{' '}
+        Right
+      </div>
+      {children}
+    </div>
+  )
+}
 const EditableVoid = ({ attributes, children, element }) => {
   const [inputValue, setInputValue] = useState('')
 
@@ -88,7 +140,7 @@ const EditableVoid = ({ attributes, children, element }) => {
           `}
           type="text"
           value={inputValue}
-          onChange={e => {
+          onChange={(e) => {
             setInputValue(e.target.value)
           }}
         />
@@ -127,7 +179,7 @@ const InsertEditableVoidButton = () => {
   const editor = useSlateStatic()
   return (
     <Button
-      onMouseDown={event => {
+      onMouseDown={(event) => {
         event.preventDefault()
         insertEditableVoid(editor)
       }}
@@ -148,7 +200,7 @@ const initialValue: SlateElement[] = [
     ],
   },
   {
-    type: 'editable-void',
+    type: 'editable-inline',
     children: [{ text: '' }],
   },
   {
