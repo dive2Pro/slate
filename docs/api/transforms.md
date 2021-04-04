@@ -2,15 +2,14 @@
 
 Transforms are helper functions operating on the document. They can be used in defining your own commands.
 
-Jump to:
+- [Node options](#node-options)
+- [Static methods](#static-methods)
+  - [Node transforms](#node-transforms)
+  - [Selection transforms](#selection-transforms)
+  - [Text transforms](#text-transforms)
+  - [Editor transforms](#editor-transforms)
 
-- [Node Options](#node-options)
-- [Node Transforms](#node-transforms)
-- [Selection Transforms](#selection-transforms)
-- [Text Transforms](#text-transforms)
-- [Editor Transforms](#general-transforms)
-
-## Node Options
+## Node options
 
 All transforms support a parameter `options`. This includes options specific to the transform, and general `NodeOptions` to specify the place in the document that the transform is applied to.
 
@@ -23,9 +22,17 @@ interface NodeOptions {
 }
 ```
 
-## Node transforms
+## Static methods
+
+### Node transforms
 
 Transforms that operate on nodes.
+
+###### `Transforms.insertFragment(editor: Editor, fragment: Node[], options?)`
+
+Insert of fragment of nodes at the specified location in the document. If no location is specified, insert at the current selection.
+
+Options: `{at?: Location, hanging?: boolean, voids?: boolean}`
 
 ###### `Transforms.insertNodes(editor: Editor, nodes: Node | Node[], options?)`
 
@@ -87,7 +94,7 @@ Move the nodes from an origin to a destination. A destination must be specified 
 
 Options supported: `NodeOptions & {to: Path}`. For `options.mode`, `'all'` is also supported.
 
-## Selection transforms
+### Selection transforms
 
 Transforms that operate on the document's selection.
 
@@ -121,7 +128,7 @@ Options: `{edge?: 'anchor' | 'focus' | 'start' | 'end'}`
 
 Set new properties on the selection.
 
-## Text transforms
+### Text transforms
 
 Transforms that operate on text.
 
@@ -131,19 +138,13 @@ Delete text in the document.
 
 Options: `{at?: Location, distance?: number, unit?: 'character' | 'word' | 'line' | 'block', reverse?: boolean, hanging?: boolean, voids?: boolean}`
 
-###### `Transforms.insertFragment(editor: Editor, fragment: Node[], options?)`
-
-Insert of fragment of nodes at the specified location in the document. If no location is specified, insert at the current selection.
-
-Options: `{at?: Location, hanging?: boolean, voids?: boolean}`
-
 ###### `Transforms.insertText(editor: Editor, text: string, options?)`
 
 Insert a string of text at the specified location in the document. If no location is specified, insert at the current selection.
 
 Options: `{at?: Location, voids?: boolean}`
 
-## General transform
+### Editor transforms
 
 ###### `Transforms.transform(editor: Editor, transform: Transform)`
 

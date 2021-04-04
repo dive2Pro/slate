@@ -7,7 +7,6 @@ import {
   Transforms,
   createEditor,
   Descendant,
-  Node,
   Element as SlateElement,
 } from 'slate'
 import { withHistory } from 'slate-history'
@@ -185,7 +184,7 @@ const MarkButton = ({ format, icon }) => {
   )
 }
 
-const initialValue: SlateElement[] = [
+const initialValue: Descendant[] = [
   {
     type: 'paragraph',
     children: [

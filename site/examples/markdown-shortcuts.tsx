@@ -2,7 +2,6 @@
 import React, { useState, useCallback, useMemo } from 'react'
 import { Slate, Editable, withReact } from 'slate-react'
 import {
-  Node,
   Editor,
   Transforms,
   Range,
@@ -237,7 +236,7 @@ const Element = ({ attributes, children, element }) => {
   }
 }
 
-const initialValue: SlateElement[] = [
+const initialValue: Descendant[] = [
   {
     type: 'paragraph',
     children: [

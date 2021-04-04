@@ -10,11 +10,20 @@ interface Point {
 }
 ```
 
+- [Static methods](#static-methods)
+  - [Retrieval methods](#retrieval-methods)
+  - [Check methods](#check-methods)
+  - [Transform methods](#transform-methods)
+
 ## Static methods
+
+### Retrieval methods
 
 ###### `Point.compare(point: Point, another: Point): -1 | 0 | 1`
 
 Compare a `point` to `another`, returning an integer indicating whether the point was before, at or after the other.
+
+### Check methods
 
 ###### `Point.isAfter(point: Point, another: Point): boolean`
 
@@ -31,6 +40,8 @@ Check if a `point` is exactly equal to `another`.
 ###### `Point.isPoint(value: any): value is Point`
 
 Check if a `value` implements the `Point` interface.
+
+### Transform methods
 
 ###### `Point.transform(point: Point, op: Operation, options?): Point | null`
 
